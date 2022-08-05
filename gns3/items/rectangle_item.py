@@ -45,7 +45,20 @@ class RectangleItem(QtWidgets.QGraphicsRectItem, ShapeItem):
         painter.setPen(self.pen())
         painter.setBrush(self.brush())
         painter.drawRoundedRect(self.rect(), self._borderRadius, self._borderRadius)
+        if option.state & QtWidgets.QStyle.StateFlag.State_Selected:
+            pen = QtGui.QPen()
+            pen.setStyle(QtCore.Qt.DashLine)
+            pen.setColor(QtGui.QColor(58, 58, 58))
+            pen.setWidth(1)
+            painter.setPen(pen)
+            pen_width = self.pen().width()
+            rect = QtCore.QRectF(self.rect().x() - pen_width / 2, self.rect().y() - pen_width / 2,
+                                 self.rect().width() + pen_width, self.rect().height() + pen_width)
+            painter.drawRoundedRect(rect, self._borderRadius, self._borderRadius)
         self.drawLayerInfo(painter)
+
+    def boundingRect(self) -> QtCore.QRectF:
+        return QtCore.QRectF(self.rect().x(), self.rect().y(), self.rect().width(), self.rect().height())
 
     def toSvg(self):
         """
