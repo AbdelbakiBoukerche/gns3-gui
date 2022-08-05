@@ -22,6 +22,7 @@ Style editor to edit Link items.
 
 from ..qt import QtCore, QtWidgets, QtGui
 from ..ui.style_editor_dialog_ui import Ui_StyleEditorDialog
+from ..utils.link_style import ELinkStyle
 
 
 class StyleEditorDialogLink(QtWidgets.QDialog, Ui_StyleEditorDialog):
@@ -51,6 +52,10 @@ class StyleEditorDialogLink(QtWidgets.QDialog, Ui_StyleEditorDialog):
         self.uiBorderStyleComboBox.addItem("Dash Dot Dot", QtCore.Qt.DashDotDotLine)
         self.uiBorderStyleComboBox.addItem("Invisible", QtCore.Qt.NoPen)
 
+        self.uiLinkStyleComboBox.addItem("Straight", ELinkStyle.Straight)
+        self.uiLinkStyleComboBox.addItem("Bezier", ELinkStyle.Bezier)
+        self.uiLinkStyleComboBox.addItem("Flow Chart", ELinkStyle.FlowChart)
+
         self.uiColorLabel.hide()
         self.uiColorPushButton.hide()
         self._color = None
@@ -71,6 +76,14 @@ class StyleEditorDialogLink(QtWidgets.QDialog, Ui_StyleEditorDialog):
         index = self.uiBorderStyleComboBox.findData(pen.style())
         if index != -1:
             self.uiBorderStyleComboBox.setCurrentIndex(index)
+
+        if self._link._link._link_style is not None and "style" in self._link._link._link_style:
+            index = self._link._link._link_style["style"]
+            self.uiLinkStyleComboBox.setCurrentIndex(index)
+
+        if self._link._link._link_style is not None and "factor" in self._link._link._link_style:
+            factor = self._link._link._link_style["factor"]
+            self.uiLinkStyleFactorSpinBox.setValue(int(factor))
 
         self.adjustSize()
 
@@ -94,14 +107,17 @@ class StyleEditorDialogLink(QtWidgets.QDialog, Ui_StyleEditorDialog):
 
         border_style = QtCore.Qt.PenStyle(self.uiBorderStyleComboBox.itemData(self.uiBorderStyleComboBox.currentIndex()))
         pen = QtGui.QPen(self._border_color, self.uiBorderWidthSpinBox.value(), border_style, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        link_style = self.uiLinkStyleComboBox.itemData(self.uiLinkStyleComboBox.currentIndex())
 
         self._link.setPen(pen)
 
-        new_link_style = {}
+        new_link_style = dict()
         new_link_style["color"] = self._border_color.name()
         new_link_style["width"] = self.uiBorderWidthSpinBox.value()
-        new_link_style["type"]  = border_style
-        
+        new_link_style["type"] = border_style
+        new_link_style["style"] = link_style.value
+        new_link_style["factor"] = self.uiLinkStyleFactorSpinBox.value()
+
         # Store values
         self._link.setLinkStyle(new_link_style)
 

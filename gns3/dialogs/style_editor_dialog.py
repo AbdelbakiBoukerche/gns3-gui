@@ -50,6 +50,11 @@ class StyleEditorDialog(QtWidgets.QDialog, Ui_StyleEditorDialog):
         self.uiBorderStyleComboBox.addItem("Dash Dot Dot", QtCore.Qt.DashDotDotLine)
         self.uiBorderStyleComboBox.addItem("No border", QtCore.Qt.NoPen)
 
+        self.uiLinkStyleLabel.hide()
+        self.uiLinkStyleComboBox.hide()
+        self.uiLinkStyleFactorLabel.hide()
+        self.uiLinkStyleFactorSpinBox.hide()
+
         # use the first item in the list as the model
         first_item = items[0]
         pen = first_item.pen()

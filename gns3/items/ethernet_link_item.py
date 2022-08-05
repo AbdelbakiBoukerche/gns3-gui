@@ -24,6 +24,7 @@ from ..qt import QtCore, QtGui, QtWidgets
 from .link_item import LinkItem
 from .label_item import LabelItem
 from ..ports.port import Port
+from ..utils.link_style import ELinkStyle
 
 
 class EthernetLinkItem(LinkItem):
@@ -65,7 +66,20 @@ class EthernetLinkItem(LinkItem):
 
         # draw a line between nodes
         path = QtGui.QPainterPath(self.source)
-        path.lineTo(self.destination)
+
+        if self._link is None or self._link._link_style is None:
+            path.lineTo(self.destination)
+        elif "style" not in self._link._link_style:
+            path.lineTo(self.destination)
+        elif self._link._link_style["style"] == ELinkStyle.Straight:
+            path.lineTo(self.destination)
+        elif self._link._link_style["style"] == ELinkStyle.Bezier:
+            self._calculate_bezier_path(path)
+        elif self._link._link_style["style"] == ELinkStyle.FlowChart:
+            self._calculate_flow_chart_path(path)
+        else:
+            path.lineTo(self.destination)
+
         self.setPath(path)
 
         # offset on the line for status points
@@ -73,6 +87,34 @@ class EthernetLinkItem(LinkItem):
             self.edge_offset = QtCore.QPointF(0, 0)
         else:
             self.edge_offset = QtCore.QPointF((self.dx * 40) / self.length, (self.dy * 40) / self.length)
+
+    def _calculate_bezier_path(self, path: QtGui.QPainterPath) -> None:
+        if self._link is not None and "factor" in self._link._link_style:
+            factor = self._link._link_style["factor"]
+        else:
+            factor = 5.0
+        factor = factor / 5.0
+        ctrl_point1 = QtCore.QPointF(self.source.x() + (self.dx / 2) * factor, self.source.y())
+        ctrl_point2 = QtCore.QPointF(self.destination.x() - (self.dx / 2) * factor, self.destination.y())
+        path.cubicTo(ctrl_point1, ctrl_point2, self.destination)
+
+    def _calculate_flow_chart_path(self, path: QtGui.QPainterPath) -> None:
+        if self._link is not None and "factor" in self._link._link_style:
+            factor = self._link._link_style["factor"]
+        else:
+            factor = 5.0
+
+        if -150 < self.dx < 150:
+            path.lineTo(QtCore.QPointF(self.source.x(), factor * self.dx + self.source.y() + self.dy / 2))
+            path.lineTo(QtCore.QPointF(self.destination.x(), factor * self.dx + self.source.y() + self.dy / 2))
+        elif self.dy < -150 or self.dy > 150:
+            path.lineTo(QtCore.QPointF(self.source.x(), self.source.y() + self.dy / 2))
+            path.lineTo(QtCore.QPointF(self.destination.x(), self.source.y() + self.dy / 2))
+        else:
+            path.lineTo(QtCore.QPointF(self.source.x() + self.dx / 2, self.source.y()))
+            path.lineTo(QtCore.QPointF(self.source.x() + self.dx / 2, self.destination.y()))
+
+        path.lineTo(self.destination)
 
     def shape(self):
         """

@@ -147,7 +147,9 @@ class LinkItem(QtWidgets.QGraphicsPathItem):
     def setLinkStyle(self, link_style):
         self._link._link_style["color"] = link_style["color"]
         self._link._link_style["width"] = link_style["width"]
-        self._link._link_style["type"]  = link_style["type"]
+        self._link._link_style["type"] = link_style["type"]
+        self._link._link_style["style"] = link_style["style"]
+        self._link._link_style["factor"] = link_style["factor"]
 
         # This refers to functions in link.py!
         self._link.setLinkStyle(link_style)
